@@ -193,23 +193,20 @@ function App(){
   if(screen==="title"){return(
     <div style={cs}>
       <div style={{height:48}}/>
-      <WG size={64}/>
-      <div style={{height:20}}/>
-      <h1 style={{fontSize:46,fontWeight:800,color:gd,letterSpacing:10,textAlign:"center",fontFamily:serif}}>AI<br/>テイスティング</h1>
+      <h1 style={{fontSize:44,fontWeight:800,color:gd,letterSpacing:8,textAlign:"center",fontFamily:serif}}>AI<br/>テイスティング</h1>
       <div style={{height:36}}/>
-      <div style={{maxWidth:380,textAlign:"center",fontFamily:serif,fontStyle:"italic",lineHeight:2.6,fontSize:14,color:mt}}>
-        <p style={{letterSpacing:2}}>──この世界には、三つの「銘柄」がある。</p>
+      <div style={{maxWidth:400,fontFamily:serif,fontStyle:"italic",lineHeight:2.4,fontSize:15,color:mt}}>
+        <p>──ChatGPTの「もちろんです！」。</p>
+        <p>立ち上がりは華やかで、肯定の果実味が強い。</p>
+        <div style={{height:8}}/>
+        <p>だが、飲み終えた頃。</p>
+        <p>舌の奥に、じわりと残る。</p>
+        <div style={{height:8}}/>
+        <p style={{fontSize:13,color:`${mt}cc`,paddingLeft:8,borderLeft:`2px solid ${gd}40`}}>「必要であれば、この内容を表形式やMarkdown形式に整えることもできますが、いかがでしょうか？」</p>
         <div style={{height:12}}/>
-        <p style={{color:lt,fontSize:15,letterSpacing:4}}>ChatGPT、Claude、そして Gemini。</p>
-        <div style={{height:12}}/>
-        <p>凡人にはすべて同じに映るだろう。</p>
-        <p>だが真のソムリエは知っている。</p>
-        <div style={{height:12}}/>
-        <p>あの「もちろんです！」の甘い果実味を。</p>
-        <p>あの「ただ、」の一語が放つ酸味を。</p>
-        <p>あの箇条書きが奏でる構造美を。</p>
-        <div style={{height:12}}/>
-        <p style={{color:gd,letterSpacing:3}}>──今宵、あなたの舌が試される。</p>
+        <p style={{color:lt}}>う〜ん、この後味のしつこさ……</p>
+        <div style={{height:4}}/>
+        <p style={{color:gd,fontSize:17,letterSpacing:2}}>これはChatGPTだ。</p>
       </div>
       <div style={{height:44}}/>
       <button onClick={startGame} style={{...btn,maxWidth:260,background:`linear-gradient(135deg,${gd},${gdd})`,color:bg,fontSize:18,letterSpacing:6,boxShadow:`0 4px 20px ${gd}44`}}>入店する</button>
