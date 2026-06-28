@@ -17,6 +17,7 @@
   #root{min-height:100vh}
   @keyframes fadeIn{from{opacity:0;transform:scale(.95)}to{opacity:1;transform:scale(1)}}
   @keyframes slideUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+  @keyframes gentlePulse{0%,100%{opacity:.6;transform:scale(1)}50%{opacity:1;transform:scale(1.1)}}
   button{transition:all .2s ease!important}
   button:active{transform:scale(.97)!important}
 </style>
@@ -176,7 +177,7 @@ function App(){
   useEffect(()=>{if(showNote&&noteRef.current)noteRef.current.scrollIntoView({behavior:"smooth",block:"center"})},[showNote]);
 
   const startGame=()=>{setRounds(selectRounds());setIdx(0);setScore(0);setSel(null);setShowNote(false);setHist([]);setScreen("playing")};
-  const pick=(c)=>{setSel(c);if(c===round.answer)setScore(s=>s+1);setHist(h=>[...h,{idx,choice:c,correct:c===round.answer}]);setScreen("reveal");setTimeout(()=>setShowNote(true),700)};
+  const pick=(c)=>{setSel(c);if(c===round.answer)setScore(s=>s+1);setHist(h=>[...h,{idx,choice:c,correct:c===round.answer}]);setScreen("reveal");setTimeout(()=>setShowNote(true),1200)};
   const next=()=>{if(idx<rounds.length-1){setIdx(i=>i+1);setSel(null);setShowNote(false);setScreen("playing");window.scrollTo({top:0,behavior:"smooth"})}else{setScreen("results");window.scrollTo({top:0,behavior:"smooth"})}};
   const getRank=()=>RANKS.find(r=>score>=r.min&&score<=r.max);
 
@@ -272,18 +273,28 @@ function App(){
         <div style={{display:"flex",gap:10}}>{CHOICES.map(c=><button key={c} onClick={()=>pick(c)} style={{...btn,background:"transparent",border:`1.5px solid ${CC[c].bg}88`,color:CC[c].bg,fontSize:14,padding:"14px 8px"}} onMouseEnter={e=>{e.target.style.background=CC[c].bg;e.target.style.color="#fff"}} onMouseLeave={e=>{e.target.style.background="transparent";e.target.style.color=CC[c].bg}}>{c}</button>)}</div>
       </div>}
       {rv&&<div style={{width:"100%",maxWidth:520}}>
-        <div style={{textAlign:"center",padding:"12px 0",animation:"fadeIn .4s ease"}}>
-          <span style={{display:"inline-block",fontSize:14,fontWeight:700,padding:"6px 20px",borderRadius:20,background:correct?"#1a4a2a":"#4a1a1a",color:correct?"#6ecf8e":"#e07070",border:`1px solid ${correct?"#6ecf8e44":"#e0707044"}`}}>{correct?"✓ お見事！":`✗ 残念… 正解は ${round.answer}`}</span>
+        <div style={{textAlign:"center",padding:"8px 0",animation:"fadeIn .3s ease"}}>
+          <span style={{fontSize:12,color:mt}}>あなたの回答：<span style={{color:CC[sel]?.bg,fontWeight:600}}>{sel}</span></span>
         </div>
-        <div style={{textAlign:"center",marginTop:8,animation:"fadeIn .5s ease"}}>
-          <span style={{display:"inline-block",background:CC[round.answer].bg,color:"#fff",padding:"6px 24px",borderRadius:20,fontSize:15,fontWeight:700,letterSpacing:1}}>{round.answer}</span>
-        </div>
-        {showNote&&<div ref={noteRef} style={{marginTop:20,background:"linear-gradient(135deg,#fdfaf3,#f6f0e0)",borderLeft:`3px solid ${gd}`,borderRadius:"0 10px 10px 0",padding:"20px",color:dk,animation:"slideUp .6s ease",boxShadow:"0 2px 16px rgba(0,0,0,.15)"}}>
-          <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:14}}><span style={{fontSize:20}}>🍷</span><span style={{fontSize:12,color:gdd,fontWeight:700,letterSpacing:2}}>ソムリエのテイスティングノート</span></div>
-          <div style={{fontFamily:serif,fontSize:14,lineHeight:2,fontStyle:"italic",color:"#3a2a1a"}}>{(correct?round.ok:round.ng).split("\n").map((l,i)=>l===""?<div key={i} style={{height:8}}/>:<div key={i}>{l}</div>)}</div>
+        {!showNote&&<div style={{textAlign:"center",padding:"48px 0",animation:"fadeIn .5s ease"}}>
+          <div style={{fontSize:28,animation:"gentlePulse 1.5s ease infinite"}}>🍷</div>
+          <p style={{fontFamily:serif,fontStyle:"italic",color:mt,marginTop:14,fontSize:14,letterSpacing:3}}>鑑定中…</p>
         </div>}
-        <div style={{height:24}}/>
-        <button onClick={next} style={{...btn,background:`linear-gradient(135deg,${gd},${gdd})`,color:bg,fontSize:16,letterSpacing:2,boxShadow:`0 4px 20px ${gd}33`}}>{idx<rounds.length-1?"次の一杯へ":"鑑定結果を見る"}</button>
+        {showNote&&<>
+          <div ref={noteRef} style={{marginTop:12,background:"linear-gradient(135deg,#fdfaf3,#f6f0e0)",borderRadius:12,padding:"28px 24px",color:dk,animation:"slideUp .6s ease",boxShadow:"0 4px 24px rgba(0,0,0,.2)",border:"1px solid #e8dfc8"}}>
+            <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:20,paddingBottom:14,borderBottom:"1px solid #e0d8c4"}}>
+              <span style={{fontSize:24}}>🍷</span>
+              <div>
+                <span style={{fontSize:13,color:gdd,fontWeight:700,letterSpacing:2}}>ソムリエのテイスティングノート</span>
+              </div>
+            </div>
+            <div style={{fontFamily:serif,fontSize:15,lineHeight:2.4,fontStyle:"italic",color:"#3a2a1a",letterSpacing:.3}}>{(correct?round.ok:round.ng).split("\n").map((l,i)=>l===""?<div key={i} style={{height:12}}/>:<div key={i}>{l}</div>)}</div>
+          </div>
+          <div style={{textAlign:"center",padding:"18px 0",animation:"fadeIn .4s ease .4s both"}}>
+            <span style={{display:"inline-block",fontSize:13,fontWeight:600,padding:"5px 18px",borderRadius:20,background:correct?"#1a4a2a":"#4a1a1a",color:correct?"#6ecf8e":"#e07070",border:`1px solid ${correct?"#6ecf8e44":"#e0707044"}`}}>{correct?"✓ お見事！":"✗ 残念…"}</span>
+          </div>
+          <button onClick={next} style={{...btn,background:`linear-gradient(135deg,${gd},${gdd})`,color:bg,fontSize:16,letterSpacing:2,boxShadow:`0 4px 20px ${gd}33`}}>{idx<rounds.length-1?"次の一杯へ":"鑑定結果を見る"}</button>
+        </>}
       </div>}
     </div>
   );
