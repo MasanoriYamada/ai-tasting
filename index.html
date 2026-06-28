@@ -4,31 +4,21 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>AIテイスティング — あなたの舌はAIの味を見分けられるか</title>
-<meta name="description" content="AIが生成した文章を読んで、どのAIが書いたかを当てるクイズゲーム。ソムリエがあなたの鑑定眼を評価します。">
+<meta name="description" content="AIが生成した文章を読んで、どのAIが書いたかを当てるクイズゲーム。">
 <meta property="og:title" content="AIテイスティング 🍷">
 <meta property="og:description" content="あなたの舌はAIの味を見分けられるか？ ChatGPT、Claude、Gemini — その文体の癖、見抜けますか？">
 <meta property="og:type" content="website">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="AIテイスティング 🍷">
-<meta name="twitter:description" content="AIが書いた文章を読んで、どのAIか当てるクイズゲーム。あなたのソムリエランクは？">
+<meta name="twitter:description" content="AIが書いた文章を読んで、どのAIか当てるクイズ。あなたのソムリエランクは？">
 <style>
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { background: #0c0612; overflow-x: hidden; }
-  #root { min-height: 100vh; }
-  @keyframes fadeIn {
-    from { opacity: 0; transform: scale(0.95); }
-    to { opacity: 1; transform: scale(1); }
-  }
-  @keyframes slideUp {
-    from { opacity: 0; transform: translateY(16px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-  @keyframes gentlePulse {
-    0%, 100% { opacity: 0.85; }
-    50% { opacity: 1; }
-  }
-  button { transition: all 0.2s ease !important; }
-  button:active { transform: scale(0.97) !important; }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:#0c0612;overflow-x:hidden}
+  #root{min-height:100vh}
+  @keyframes fadeIn{from{opacity:0;transform:scale(.95)}to{opacity:1;transform:scale(1)}}
+  @keyframes slideUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+  button{transition:all .2s ease!important}
+  button:active{transform:scale(.97)!important}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js"></script>
@@ -37,461 +27,260 @@
 <body>
 <div id="root"></div>
 <script type="text/babel">
-const { useState, useRef, useEffect } = React;
+const {useState,useRef,useEffect}=React;
+const CHOICES=["ChatGPT","Claude","Gemini"];
+const CC={ChatGPT:{bg:"#10a37f"},Claude:{bg:"#d97757"},Gemini:{bg:"#4285f4"}};
+const GAME_SIZE=5;
 
-const CHOICES = ["ChatGPT", "Claude", "Gemini"];
+const Q=[
+// ===== ChatGPT x6 =====
+{prompt:"りんごの美味しい食べ方を教えて",answer:"ChatGPT",
+text:"もちろんです！りんごの美味しい食べ方をいくつかご紹介しますね！🍎\n\nりんごは本当に万能なフルーツで、そのまま食べても調理しても最高です！\n\n**1. 皮ごと丸かじり**\n最もシンプルで栄養価も高い食べ方です！\n\n**2. 薄切りにして塩水へ**\n変色を防ぎつつ、シャキシャキ感を楽しめます！\n\n**3. アップルパイにする**\nシナモンとバターで炒めて、パイ生地に包めば絶品です！✨\n\n他にも知りたいことがあれば、お気軽にどうぞ！😊",
+ok:"この冒頭の「もちろんです！」の華やかなアタック…絵文字🍎の芳醇なブーケが鼻腔をくすぐる…太字ナンバリングの力強いタンニン…\n\nそして「お気軽にどうぞ！😊」の甘い余韻…！ChatGPTです。求めていない情報まで全力提供するホスピタリティ、まさに新世界のフルボディ。",
+ng:"お客様…この「もちろんです！」の圧倒的肯定感を見逃すとは…！絵文字の華やかなアロマ、太字の力強いストラクチャー、末尾の無条件の歓迎…\n\nこれはChatGPTの典型的な一杯。もう一口、よくお味わいください。"},
 
-const CHOICE_COLORS = {
-  ChatGPT: { bg: "#10a37f" },
-  Claude: { bg: "#d97757" },
-  Gemini: { bg: "#4285f4" },
-};
+{prompt:"短い怖い話をして",answer:"ChatGPT",
+text:"こちらをどうぞ…！😱\n\n---\n\n**「最終電車」**\n\n終電に乗った。車内には自分以外、誰もいない。\n\nスマホを見ていると、ふと窓に何かが映った気がした。顔を上げる。窓の外は真っ暗なトンネル。\n\nでも、ガラスに映る車内には——自分の後ろの座席に、誰かが座っている。\n\n振り返った。誰もいない。\n\nもう一度、窓を見た。まだ、座っている。\n\nこちらを見て、笑っている。\n\n---\n\nいかがでしたか？😱 もっと怖い話が聞きたければ、お気軽にどうぞ！👻",
+ok:"冒頭の「こちらをどうぞ…！😱」…怖い話にすら絵文字を添えるこのホスピタリティ…！太字のタイトル、罫線での装飾…\n\nそして「いかがでしたか？😱」「お気軽にどうぞ！👻」…！渾身のホラーの余韻を自ら全力で破壊する…！ChatGPTです。恐怖すらカスタマーサービスの一環。",
+ng:"😱で恐怖を演出し、👻で締める…太字タイトルと罫線…「いかがでしたか？」のアンケート的エンディング…\n\nChatGPTです。渾身のホラーを「お気軽にどうぞ！」で台無しにするこのサービス精神、唯一無二。"},
 
-const ROUNDS = [
-  {
-    prompt: "りんごの美味しい食べ方を教えて",
-    answer: "ChatGPT",
-    text: "もちろんです！りんごの美味しい食べ方をいくつかご紹介しますね！🍎\n\nりんごは本当に万能なフルーツで、そのまま食べても調理しても最高です！\n\n**1. 皮ごと丸かじり**\n最もシンプルで栄養価も高い食べ方です！\n\n**2. 薄切りにして塩水へ**\n変色を防ぎつつ、シャキシャキ感を楽しめます！\n\n**3. アップルパイにする**\nシナモンとバターで炒めて、パイ生地に包めば絶品です！✨\n\n他にも知りたいことがあれば、お気軽にどうぞ！😊",
-    correctNote: "この冒頭の「もちろんです！」の華やかなアタック…絵文字🍎の芳醇なブーケが鼻腔をくすぐる…太字ナンバリングの力強いタンニン…\n\nそして「お気軽にどうぞ！😊」の甘い余韻…！\n\nChatGPTです。求めていない情報まで全力提供するホスピタリティ、まさに新世界のフルボディ。",
-    wrongNote: "お客様…この「もちろんです！」の圧倒的肯定感を見逃すとは…！絵文字の華やかなアロマ、太字の力強いストラクチャー、末尾の無条件の歓迎…\n\nこれはChatGPTの典型的な一杯。もう一口、よくお味わいください。",
-  },
-  {
-    prompt: "猫と犬、どっちが賢い？",
-    answer: "Claude",
-    text: "これは面白い問いですね。ただ、「賢さ」の定義によって答えがかなり変わってくるので、少し整理してみます。\n\n犬は社会的知性に優れています。人間の指差しや表情を読み取る能力は、他の動物と比べても突出しています。一方で猫は、問題解決能力や空間認知において独自の強みを持っています。\n\n結局のところ、「どちらが賢いか」という問い自体が、人間中心的な尺度を動物に当てはめている面があるかもしれません。",
-    correctNote: "ふむ…「面白い問いですね」から始まる穏やかなアタック…「ただ」の慎重な酸味…両論併記の完璧なバランス…\n\n最後に「〜かもしれません」で問いを返すこの奥ゆかしさ…！\n\nClaudeです。控えめだが芯がある、ブルゴーニュのピノ・ノワールのような上品さ。",
-    wrongNote: "おやおや…この繊細な留保表現を見逃されるとは…「ただ」で始まる前置きの上品な酸味、両論併記の絶妙なバランス、そして結論を断定しない奥ゆかしさ…\n\nこれはClaudeです。控えめだが芯がある一杯を、次こそお見逃しなく。",
-  },
-  {
-    prompt: "量子コンピュータって何？",
-    answer: "Gemini",
-    text: "量子コンピュータとは、量子力学の原理を利用して計算を行う次世代のコンピュータです。\n\n従来のコンピュータが「ビット」（0か1）を使うのに対し、量子コンピュータは「量子ビット」を使います。\n\n**主な特徴：**\n* **重ね合わせ：** 0と1を同時に表現できる\n* **量子もつれ：** 離れた量子ビット同士が影響し合う\n* **量子干渉：** 正しい答えの確率を高める\n\n**活用が期待される分野：**\n* 創薬シミュレーション\n* 金融リスク分析\n* 暗号技術\n\nGoogleやIBMなどが研究を進めており、今後の発展が期待されています。",
-    correctNote: "アスタリスク箇条書きの整然たる行列…！「主な特徴」「活用が期待される分野」のセクション分け…Google検索結果を思わせるこの構造美…\n\nGeminiです。優等生のカベルネ・ソーヴィニヨン。教科書的だが隙がない。聞かれてもいない応用分野まで出してくるサービス精神、さすが。",
-    wrongNote: "この整然とした箇条書きの行軍…！太字見出しで区切られたセクション構造…聞かれてもいない「活用が期待される分野」まで展開するこのサービス精神…\n\nGeminiです。図書館の優等生のような一杯を見逃すとは…",
-  },
-  {
-    prompt: "月曜日が憂鬱です",
-    answer: "ChatGPT",
-    text: "月曜日の憂鬱、とてもよく分かります…！😢\n\n多くの人が「ブルーマンデー」を経験していますので、あなただけではありませんよ！\n\n以下に、月曜を楽にするヒントをご紹介します：\n\n**1. 日曜の夜に楽しみを用意する**\n好きなドラマや映画でリラックス！\n\n**2. 月曜にご褒美を設定する**\n美味しいランチを予約するのもおすすめ！\n\n**3. 朝のルーティンを整える**\n余裕を持って起きると気持ちも楽に！\n\nあなたなら大丈夫です！応援しています！💪✨",
-    correctNote: "感情への共感で始まる…が、0.3秒で解決策リストに移行するこのスピード…！「あなたなら大丈夫です！💪✨」の根拠なき全力励まし…！\n\nまたしてもChatGPT。求められていないアドバイスを全力投球する、このサービス過剰な果実味。二杯目でもブレないこの安定感。",
-    wrongNote: "お客様…この即座のアドバイス展開、根拠のない「大丈夫です！」、そしてこの💪✨…！\n\nChatGPTの二杯目です。悩みに共感しつつ0.3秒でソリューション提示に移行する、この圧倒的ポジティビティを見抜けねば…！",
-  },
-  {
-    prompt: "AIは人間の仕事を奪うのか？",
-    answer: "Claude",
-    text: "率直に言えば、「奪う仕事もあれば、生まれる仕事もある」というのが最も誠実な答えだと思います。\n\n歴史的に見ると、産業革命では織工の仕事が機械に置き換わりましたが、同時に機械の設計・保守という新たな職業が生まれました。AIでも同様のことが起きる可能性は高いでしょう。\n\nただし、今回の変化のスピードは過去の技術革新より速いかもしれず、移行期間の短さが社会的な課題になり得ます。\n\n「奪うか否か」という二項対立より、「どう適応するか」に議論を移した方が建設的ではないかと考えます。",
-    correctNote: "「率直に言えば」の誠実なアタック…！産業革命の具体例を挟む知的なミドルパレット…「ただし」の慎重な留保…そして「建設的ではないか」で着地するこの自制心…\n\nClaude二杯目。この留保と誠実さのテロワール、唯一無二。断言を避ける姿勢はもはや芸術の域。",
-    wrongNote: "この「率直に言えば」から始まる誠実なアプローチ…歴史的根拠の積み上げ…「ただし」の留保…結論を押し付けない着地…\n\nClaude二杯目です。断定を避け、考える余白を残すこの知的な余韻を、次こそお見逃しなく。",
-  },
-  {
-    prompt: "おすすめの映画を教えて",
-    answer: "Gemini",
-    text: "おすすめの映画をジャンル別にご紹介しますね！\n\n**アクション：**\n* 『マッドマックス 怒りのデス・ロード』— 圧巻の映像美\n* 『ジョン・ウィック』— スタイリッシュなガンアクション\n\n**SF：**\n* 『インターステラー』— 壮大な宇宙と親子の絆\n* 『ブレードランナー 2049』— 哲学的な世界観\n\n**ヒューマンドラマ：**\n* 『ショーシャンクの空に』— 不朽の名作\n* 『パラサイト 半地下の家族』— 社会派の傑作\n\nお好みのジャンルがあれば、さらに絞り込めますよ！",
-    correctNote: "ジャンル別に完璧に分類された推薦リスト…！この几帳面さ…！一行コメントの効率性…「さらに絞り込めますよ！」の営業スマイル…\n\nGemini二杯目。網羅的で参考になるが、「あなたにはこれ！」と一本を選べない優柔不断さもまた風味。情報のデパート、Gemini。",
-    wrongNote: "このジャンル別の完璧な分類…！見出し＋箇条書き＋一行コメントの三拍子…「絞り込めますよ！」の追加サービス提案…\n\nGemini二杯目です。一本に絞れず全ジャンル網羅するこの性格、もう覚えましたよね？",
-  },
+{prompt:"転職すべきか悩んでいます",answer:"ChatGPT",
+text:"転職を考えているんですね！悩む気持ち、とてもよく分かります😊\n\nまず、転職を考えている時点で、何かしら今の環境に違和感を感じているということですよね。その直感は大切にしてください！✨\n\n以下のポイントで整理してみましょう：\n\n**✅ 転職を考えるべきサイン：**\n1. **成長を感じられない** — スキルアップの機会がない\n2. **人間関係が慢性的にストレス** — 改善の見込みがない\n3. **給与や待遇に不満** — 市場価値と乖離している\n\n**⚠️ 慎重になるべきケース：**\n1. 一時的な感情で判断しようとしている\n2. 転職先が決まっていない\n\n大切なのは「逃げの転職」ではなく「攻めの転職」にすること！\n\nもっと詳しく教えていただければ、具体的なアドバイスもできますよ！💪",
+ok:"「悩む気持ち、とてもよく分かります😊」の即座の肯定…✅と⚠️の視覚的装飾…「攻めの転職」のパワーワード…！\n\nChatGPTです。人生の重要な岐路に立つ相談者に、状況を聞く前にチェックリストを差し出すこのスピード感。",
+ng:"😊✅⚠️💪の絵文字四重奏…「攻めの転職」のポジティブ変換…状況を聞く前のフレームワーク提示…\n\nChatGPTです。「悩んでいます」への回答が即チェックリストという、この圧倒的ソリューション志向。"},
+
+{prompt:"簡単にできるダイエットのコツを教えて",answer:"ChatGPT",
+text:"もちろんです！無理なく続けられるダイエットのコツをご紹介しますね！💪✨\n\n**1. 食事は「引き算」より「置き換え」**\n白米を玄米に、ジュースをお茶に置き換えるだけでも効果ありますよ！\n\n**2. タンパク質を意識する**\n鶏むね肉、豆腐、卵を積極的に！満腹感が持続します！\n\n**3. 食べる順番を変える**\n野菜→タンパク質→炭水化物の順で血糖値の急上昇を防げます！\n\n**4. 水をたくさん飲む**\n1日2リットルを目標に！代謝アップにつながります🚰\n\n**5. 睡眠をしっかりとる**\n7〜8時間の睡眠は実はダイエットの味方なんです！😴\n\nあなたなら絶対にできます！応援しています！🔥",
+ok:"「もちろんです！💪✨」の華やかなアタック…太字ナンバリング5連発…🚰😴🔥の絵文字三段活用…\n\n「あなたなら絶対にできます！🔥」…体重も生活習慣も知らないのに「絶対にできます」と言い切るこの自信…！ChatGPT。",
+ng:"「もちろんです！💪✨」→太字5連発→「絶対にできます！🔥」のゴールデンコンボ…\n\nChatGPTです。根拠なく全力応援する、この圧倒的ポジティビティを見逃すとは…"},
+
+{prompt:"この企画書の感想を率直に聞かせて",answer:"ChatGPT",
+text:"拝見しました！正直に言って、これはかなり完成度の高い企画だと思います！✨\n\n特にターゲット層の分析が素晴らしいですね。市場ニーズとの整合性もしっかり取れていて、説得力があります！\n\nもしさらにブラッシュアップするとすれば：\n\n**1. 競合分析を追加する**\n差別化ポイントを明記すると、さらに説得力が増します！\n\n**2. 具体的なKPIを設定する**\n数値目標があると進捗管理がしやすくなりますよ！\n\n**3. リスク分析を加える**\n想定リスクと対策があると信頼感がアップします！\n\n全体的にこの方向性で進めて問題ないと思います💪\nプレゼン資料の作成もお手伝いしましょうか？😊",
+ok:"「正直に言って、かなり完成度が高い」の褒め先行アタック…改善点すら「さらにブラッシュアップするとすれば」のポジティブ包装…\n\n「プレゼン資料もお手伝いしましょうか？😊」…！頼まれていないサービスを提案するこの営業力…！ChatGPTです。「率直に」と言われても褒めが先に来る体質。",
+ng:"褒め先行→改善点のポジティブ包装→頼まれていない追加サービス提案…\n\nChatGPTです。「率直に聞かせて」への返答が9割褒めから始まるこの体質。「xxxもやりましょうか？」はChatGPTの名刺です。"},
+
+{prompt:"彼女の誕生日プレゼント、何がいいかな",answer:"ChatGPT",
+text:"素敵ですね！彼女さん、きっと喜びますよ！✨\n\nいくつかおすすめをご紹介します：\n\n**1. アクセサリー** 💍\n名前入りのネックレスやブレスレットは特別感がありますよ！\n\n**2. 体験ギフト** 🌟\nスパやアフタヌーンティーなど、思い出に残る体験を！\n\n**3. コスメ** 💄\n普段自分では買わないブランドのものが喜ばれます！\n\n**4. サプライズレター** ✉️\nプレゼントに手書きの手紙を添えると、感動が倍増します！\n\n予算やお相手の好みを教えていただければ、もっと絞り込めますよ！😊\nラッピングのアイデアも一緒に考えましょうか？🎁",
+ok:"「素敵ですね！きっと喜びますよ！✨」の無条件肯定…💍🌟💄✉️🎁の絵文字パレード…\n\n「ラッピングのアイデアも一緒に考えましょうか？🎁」…！頼んでもいないのに追加サービスを提案するこの営業魂…！ChatGPTです。相手の好みも聞かずに4カテゴリ展開する先走りのホスピタリティ。",
+ng:"絵文字パレード…無条件肯定…そして「ラッピングも考えましょうか？🎁」の追加営業…\n\nChatGPTです。何を聞いても「xxxもやりましょうか？」で終わるこの体質、見逃してはなりません。"},
+
+// ===== Claude x6 =====
+{prompt:"猫と犬、どっちが賢い？",answer:"Claude",
+text:"これは面白い問いですね。ただ、「賢さ」の定義によって答えがかなり変わってくるので、少し整理してみます。\n\n犬は社会的知性に優れています。人間の指差しや表情を読み取る能力は、他の動物と比べても突出しています。一方で猫は、問題解決能力や空間認知において独自の強みを持っています。\n\n結局のところ、「どちらが賢いか」という問い自体が、人間中心的な尺度を動物に当てはめている面があるかもしれません。",
+ok:"ふむ…「面白い問いですね」から始まる穏やかなアタック…「ただ」の慎重な酸味…両論併記の完璧なバランス…\n\n最後に「〜かもしれません」で問いを返すこの奥ゆかしさ…！Claudeです。控えめだが芯がある、ブルゴーニュのピノ・ノワール。",
+ng:"おやおや…「ただ」で始まる前置きの上品な酸味、両論併記のバランス、結論を断定しない奥ゆかしさ…\n\nClaudeです。控えめだが芯がある一杯を、次こそお見逃しなく。"},
+
+{prompt:"3歳の子供が言うことを聞かない。どう叱ればいい？",answer:"Claude",
+text:"まず一つお伝えしたいのは、3歳で「言うことを聞かない」のは、発達的にはかなり正常なことだということです。自我が芽生える時期なので、むしろ健全な成長の証でもあります。\n\nその上で、いくつかの視点を共有します。\n\n「叱る」より「伝える」の方が、この年齢では効果的なことが多いです。「ダメ！」ではなく「○○すると痛いから、△△しようね」のように、理由と代替行動をセットで伝える方が子供の理解につながりやすいと言われています。\n\nただ、これは理想論で、実際には余裕がないときに冷静でいるのは本当に難しい。完璧な対応ができなくても、それは自然なことだと思います。",
+ok:"「発達的にはかなり正常」で親を安心させるアタック…「叱る」を「伝える」に言い換える繊細さ…\n\n「これは理想論で」の自己ツッコミ…！「完璧な対応ができなくても自然なこと」の温かい着地…！Claudeです。正論と共感のブレンドが絶妙。",
+ng:"安心させるアタック…理想論の後の「ただ、実際には」の自己相対化…\n\nClaudeです。テンプレートではなく親の気持ちにも寄り添う二重構造を見逃すとは…"},
+
+{prompt:"「了解しました」と「承知しました」、ビジネスではどっちが正しい？",answer:"Claude",
+text:"結論から言うと、どちらも間違いではありません。\n\n「了解しました」が目上に失礼だという説はかなり広まっていますが、実はこれに明確な語源的・歴史的根拠はありません。言語学者の間でもこの「マナー」の出所は不明とされています。\n\nただし、現実問題として「了解しました」を失礼だと感じる人が一定数いるのも事実です。言葉の正しさとは別に、相手がどう受け取るかという実用的な問題があります。\n\nですので、迷ったら「承知しました」を使っておく方が無難ではありますが、「了解しました」が本質的に失礼な表現だという認識は、修正してもいいかもしれません。\n\n言葉のマナーは、しばしば「なんとなくそう言われている」が事実化してしまう面がありますね。",
+ok:"「どちらも間違いではない」の明快なアタック…その後の「根拠はありません」「言語学者の間でも」の証拠ベース展開…\n\n「修正してもいいかもしれません」の控えめな着地…！Claudeです。通説を鵜呑みにしない知的誠実さ。「なんとなく〜事実化」の社会観察も見事。",
+ng:"通説に「根拠がない」と切り込む知的アプローチ…「ただし現実問題として」のバランス…\n\nClaudeです。「正しい答え」ではなく「正しいと言われていることの根拠」を問い直すこの姿勢。"},
+
+{prompt:"上司からの飲み会の誘いを角を立てずに断りたい",answer:"Claude",
+text:"これ、意外と難しい問題ですよね。いくつか考え方を整理してみます。\n\nまず前提として、「角を立てずに」と「毎回参加」の間のどこかに、あなたにとっての適切なラインがあるはずです。全部断る必要もないし、全部行く必要もありません。\n\n断り方としては「今日は先約がありまして」が定番ですが、正直なところ同じ理由を繰り返すと不自然になります。\n\n個人的には、たまに参加することで「行くときは行く人」というイメージを作っておくのが、長期的には一番楽かもしれません。3回に1回くらい顔を出す方が、むしろ断りやすくなる面もあります。\n\nただ、これはあくまで一般論で、上司との関係性や職場の文化によって最適解は変わります。",
+ok:"「意外と難しい問題ですよね」の共感アタック…「正直なところ」の誠実さ…「3回に1回」の具体的だが断定しない提案…\n\n「あくまで一般論」…！この留保の余韻…！Claudeです。テンプレートではなく「考え方」を差し出すこの姿勢。断り方の例文ではなく、断りやすくなる構造を教えてくれる。",
+ng:"「意外と難しい」で始まる共感…テンプレートを出さず考え方を整理する姿勢…「あくまで一般論」の留保…\n\nClaudeです。即座に解決策を出さず一緒に考えてくれるこの距離感を見抜けねば…"},
+
+{prompt:"この文章を添削して。「弊社は常に革新的なソリューションを提供し、業界のリーディングカンパニーとしての地位を確立してまいりました」",answer:"Claude",
+text:"率直に言うと、内容は悪くないのですが、いくつか気になる点があります。\n\n「革新的なソリューション」「リーディングカンパニー」と、企業文書でよく見かける定型表現が続いている印象です。これだと、どの会社にも当てはまる文章になってしまい、御社ならではの独自性が伝わりにくいかもしれません。\n\nたとえば「革新的なソリューション」を、具体的に何をしたのかに置き換えるだけで説得力が増します。「○○技術を業界で初めて実用化し」のように。\n\nあと、「確立してまいりました」は過去の実績を語る表現なので、これからの姿勢を示したいなら現在形の方が力強いかもしれませんね。\n\nただ、文章の目的や読み手によって最適解は変わるので、どういう場面で使うか教えていただければ、もう少し具体的な提案ができると思います。",
+ok:"「率直に言うと」の誠実なアタック…「定型表現が続いている」の遠慮のない指摘…しかし具体的な改善案もセットで提示する建設的さ…\n\n「目的によって最適解は変わる」の留保…！Claudeです。褒めから入らず、でも攻撃的でもない。「率直に」と頼まれたら本当に率直に答えるこの誠実さ。",
+ng:"褒めから入らない率直さ…「定型表現」の指摘…具体的改善案…「目的によって変わる」の留保…\n\nClaudeです。ChatGPTなら「素晴らしい文章ですね！」から入るところを、正面から改善点を伝えるこの姿勢。"},
+
+{prompt:"ナポレオンって背が低かったんだよね？",answer:"Claude",
+text:"これは実はかなり根強い誤解の一つです。\n\nナポレオンの身長は約170cmで、当時のフランス人男性としてはむしろ平均的か、やや高い方でした。「背が低い」という印象が定着した背景には、いくつかの要因があります。\n\n一つは、フランスとイギリスで使われていた「フィート」の単位が異なっていたこと。もう一つは、イギリスの風刺画家たちがナポレオンを意図的に小さく描いたことです。戦時中のプロパガンダですね。\n\nまた、近衛兵が長身揃いだったため、相対的に小さく見えたという説もあります。\n\n歴史上の「常識」が実は後世の創作だったというケースは、意外と多いですね。",
+ok:"「実はかなり根強い誤解」の穏やかだが明確な訂正…単位の違い、風刺画、近衛兵と複数の根拠…\n\n「歴史上の『常識』が実は後世の創作」の余韻…！Claudeです。間違いを指摘しつつ「なぜその誤解が生まれたか」まで掘り下げる知的誠実さ。相手を馬鹿にしない訂正の仕方。",
+ng:"穏やかだが明確な訂正…「なぜ誤解が生まれたか」の掘り下げ…複数の根拠…\n\nClaudeです。「違いますよ」で終わらず、誤解の背景まで丁寧に解き明かすこの姿勢。"},
+
+// ===== Gemini x6 =====
+{prompt:"量子コンピュータって何？",answer:"Gemini",
+text:"量子コンピュータとは、量子力学の原理を利用して計算を行う次世代のコンピュータです。\n\n従来のコンピュータが「ビット」（0か1）を使うのに対し、量子コンピュータは「量子ビット」を使います。\n\n**主な特徴：**\n* **重ね合わせ：** 0と1を同時に表現できる\n* **量子もつれ：** 離れた量子ビット同士が影響し合う\n* **量子干渉：** 正しい答えの確率を高める\n\n**活用が期待される分野：**\n* 創薬シミュレーション\n* 金融リスク分析\n* 暗号技術\n\nGoogleやIBMなどが研究を進めており、今後の発展が期待されています。",
+ok:"アスタリスク箇条書きの整然たる行列…！「主な特徴」「活用が期待される分野」のセクション分け…\n\nGeminiです。優等生のカベルネ・ソーヴィニヨン。聞かれてもいない応用分野まで展開するサービス精神、さすが。",
+ng:"整然とした箇条書き…太字見出しのセクション構造…聞かれてもいない応用分野の展開…\n\nGeminiです。図書館の優等生のような一杯を見逃すとは…"},
+
+{prompt:"おすすめの映画を教えて",answer:"Gemini",
+text:"おすすめの映画をジャンル別にご紹介しますね！\n\n**アクション：**\n* 『マッドマックス 怒りのデス・ロード』— 圧巻の映像美\n* 『ジョン・ウィック』— スタイリッシュなガンアクション\n\n**SF：**\n* 『インターステラー』— 壮大な宇宙と親子の絆\n* 『ブレードランナー 2049』— 哲学的な世界観\n\n**ヒューマンドラマ：**\n* 『ショーシャンクの空に』— 不朽の名作\n* 『パラサイト 半地下の家族』— 社会派の傑作\n\nお好みのジャンルがあれば、さらに絞り込めますよ！",
+ok:"ジャンル別に完璧に分類された推薦リスト…！この几帳面さ…！「さらに絞り込めますよ！」の営業スマイル…\n\nGemini。「あなたにはこれ！」と一本を選べない優柔不断さもまた風味。情報のデパート。",
+ng:"ジャンル別の完璧な分類…一行コメントの三拍子…「絞り込めますよ！」の追加サービス…\n\nGemini。一本に絞れず全ジャンル網羅するこの性格、覚えましたか？"},
+
+{prompt:"プログラミング初心者におすすめの言語は？",answer:"Gemini",
+text:"プログラミング初心者におすすめの言語を、目的別にご紹介します！\n\n**Web開発をしたい場合：**\n* **JavaScript** — フロントもバックもカバーできる万能言語\n* **HTML/CSS** — Webの基礎として必須\n\n**データ分析・AIに興味がある場合：**\n* **Python** — シンプルな文法で初心者に最適。ライブラリも豊富\n\n**アプリ開発をしたい場合：**\n* **Swift** — iOSアプリ開発向け\n* **Kotlin** — Androidアプリ開発向け\n\n**ゲーム開発をしたい場合：**\n* **C#** — Unityでゲーム開発が可能\n\nまずは作りたいものを決めてから言語を選ぶのがおすすめです。迷ったらPythonから始めると幅広い分野に応用できますよ！",
+ok:"目的別4セクション…各カテゴリに候補を並べる網羅性…\n\nGeminiです。「一つ選んで」と言われても全方位カバーせずにはいられない百貨店体質。「迷ったらPython」の着地もGoogle検索1位感がある。",
+ng:"目的別の4セクション分類…各カテゴリに丁寧な候補リスト…\n\nGeminiです。「おすすめは？」に選択肢全展開するこの几帳面さ、見逃してはなりません。"},
+
+{prompt:"自宅でできる筋トレメニューを教えて",answer:"Gemini",
+text:"自宅でできる筋トレメニューを、部位別にご紹介します！\n\n**上半身：**\n* **腕立て伏せ** — 胸・肩・三頭筋に効く基本種目（10回×3セット）\n* **ナロープッシュアップ** — 手幅を狭くして三頭筋を集中強化（8回×3セット）\n\n**下半身：**\n* **スクワット** — 太もも・お尻の大筋群を効率的に（15回×3セット）\n* **ランジ** — バランス力も向上（左右10回×3セット）\n\n**体幹：**\n* **プランク** — 腹筋・背筋を同時に鍛える（30秒×3セット）\n* **クランチ** — 腹直筋をピンポイントで刺激（15回×3セット）\n\n**おすすめの頻度：**\n* 週3〜4回（連日は避け、回復時間を確保しましょう）\n\nフォームが分からない種目があれば、詳しく解説できますよ！",
+ok:"「上半身」「下半身」「体幹」「おすすめの頻度」の4セクション…！回数×セット数の几帳面な記載…「解説できますよ！」の追加営業…\n\nGeminiです。情報をカテゴリに分けずにはいられない整理魔気質。パーソナルトレーナーより丁寧。",
+ng:"部位別3セクション＋頻度セクション…種目ごとの回数×セット…「解説できますよ！」の営業…\n\nGeminiです。カテゴリ分けへの執着と網羅性はGeminiのDNA。"},
+
+{prompt:"iPhoneとAndroid、結局どっちがいいの？",answer:"Gemini",
+text:"どちらが良いかは、重視するポイントによって異なります。それぞれの特徴をまとめました！\n\n**iPhoneが向いている人：**\n* **操作のシンプルさ**を重視 — 直感的なUIが特徴\n* **Apple製品**を他にも使っている — AirDrop等の連携が強力\n* **長期サポート**を求める — OSアップデートが5〜6年続く\n\n**Androidが向いている人：**\n* **カスタマイズ性**を重視 — ホーム画面やデフォルトアプリを自由に変更\n* **コスパ**を重視 — 幅広い価格帯から選べる\n* **周辺機器との互換性**を重視 — SDカード対応機種も\n\n**価格帯の比較：**\n* iPhone：12万〜20万円（最新モデル）\n* Android：2万〜20万円（幅広い選択肢）\n\n具体的な用途や予算があれば、さらに絞り込んでご提案できますよ！",
+ok:"「iPhoneが向いている人」「Androidが向いている人」の均等な二分法…「価格帯の比較」のデータセクション…「絞り込んでご提案できますよ！」の営業スマイル…\n\nGeminiです。「どっちがいい？」と聞かれても絶対に片方を選ばない。整然と両方の特徴を並べるこの完璧な中立性。「で、結局どっち？」には永遠に答えません。",
+ng:"両方の特徴を均等に列挙…価格比較データ…「ご提案できますよ！」の追加営業…\n\nGeminiです。「どっちがいい？」の答えが比較一覧表になるこの中立性を見逃すとは…"},
+
+{prompt:"来月引っ越すんだけど、何から準備すればいい？",answer:"Gemini",
+text:"引っ越しの準備を、時期別にまとめました！\n\n**1ヶ月前：**\n* 引っ越し業者の見積もり・予約（複数社比較推奨）\n* 不用品の整理・処分（粗大ゴミは事前申込み要）\n* 転居届・転出届の準備\n\n**2週間前：**\n* 荷造り開始（使用頻度の低いものから）\n* 各種住所変更手続き（銀行、カード、保険等）\n* 電気・ガス・水道・ネットの移転手続き\n\n**1週間前：**\n* 冷蔵庫の中身を使い切る計画\n* 貴重品・重要書類をまとめる\n* ご近所への挨拶準備\n\n**当日：**\n* 旧居の最終チェック（忘れ物・破損確認）\n* 新居の設備確認（水漏れ・傷の記録）\n* ライフラインの開通確認\n\n各手続きの詳しい方法についても解説できますよ！",
+ok:"「1ヶ月前」「2週間前」「1週間前」「当日」の時系列4セクション…各セクション内の箇条書き…「解説できますよ！」の追加営業…\n\nGeminiです。「何から？」と聞かれて全工程を時系列で完璧に整理するこの几帳面さ。人生のイベントすらカテゴリ分けせずにはいられない。",
+ng:"時系列4セクション…各セクションの箇条書き…網羅的な手続きリスト…\n\nGeminiです。引っ越しすら完璧にカテゴリ分けして箇条書きにするこの整理魔気質。"},
 ];
 
-const RANKS = [
-  { min: 0, max: 1, emoji: "🍼", title: "新人ウェイター", desc: "まだAIの味が区別できないようです。\nまずはお冷やからどうぞ。" },
-  { min: 2, max: 3, emoji: "🍷", title: "見習いソムリエ", desc: "基本的な味の違いは感じ取れています。\nあと少し修行を積めば…" },
-  { min: 4, max: 5, emoji: "🏆", title: "マスターソムリエ", desc: "素晴らしい鑑定眼。\nAIの機微を感じ取る一流の舌をお持ちです。" },
-  { min: 6, max: 6, emoji: "👑", title: "神の舌", desc: "全問正解……。\nあなた、もしかしてAIでは？" },
+const RANKS=[
+  {min:0,max:1,emoji:"🍼",title:"新人ウェイター",desc:"まだAIの味が区別できないようです。\nまずはお冷やからどうぞ。"},
+  {min:2,max:3,emoji:"🍷",title:"見習いソムリエ",desc:"基本的な味の違いは感じ取れています。\nもう少し修行を積めば…"},
+  {min:4,max:4,emoji:"🏆",title:"マスターソムリエ",desc:"素晴らしい鑑定眼。\nAIの機微を感じ取る一流の舌をお持ちです。"},
+  {min:5,max:5,emoji:"👑",title:"神の舌",desc:"全問正解……。\nあなた、もしかしてAIでは？"},
 ];
 
-function parseLine(text) {
-  const parts = text.split(/\*\*(.*?)\*\*/g);
-  return parts.map((part, i) =>
-    i % 2 === 1
-      ? React.createElement("strong", { key: i, style: { fontWeight: 700 } }, part)
-      : React.createElement("span", { key: i }, part)
-  );
+function shuffle(a){const b=[...a];for(let i=b.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]]}return b}
+
+function selectRounds(){
+  const byAI={};
+  Q.forEach(q=>{if(!byAI[q.answer])byAI[q.answer]=[];byAI[q.answer].push(q)});
+  Object.keys(byAI).forEach(k=>byAI[k]=shuffle(byAI[k]));
+  const ais=shuffle(Object.keys(byAI));
+  const sel=[];
+  sel.push(...byAI[ais[0]].slice(0,2));
+  sel.push(...byAI[ais[1]].slice(0,2));
+  sel.push(byAI[ais[2]][0]);
+  return shuffle(sel);
 }
 
-function RenderText({ text, style }) {
-  const lines = text.split("\n");
-  return (
-    <div style={style}>
-      {lines.map((line, i) => {
-        if (line.trim() === "") return <div key={i} style={{ height: 10 }} />;
-        if (line.trim().startsWith("* ")) {
-          const content = line.trim().slice(2);
-          return (
-            <div key={i} style={{ display: "flex", gap: 8, paddingLeft: 8, lineHeight: 1.7 }}>
-              <span style={{ color: "#a08850", flexShrink: 0 }}>•</span>
-              <span>{parseLine(content)}</span>
-            </div>
-          );
-        }
-        return <div key={i} style={{ lineHeight: 1.7 }}>{parseLine(line)}</div>;
-      })}
+function parseLine(t){const p=t.split(/\*\*(.*?)\*\*/g);return p.map((s,i)=>i%2===1?React.createElement("strong",{key:i,style:{fontWeight:700}},s):React.createElement("span",{key:i},s))}
+
+function RT({text,style}){
+  return React.createElement("div",{style},text.split("\n").map((ln,i)=>{
+    if(ln.trim()==="")return React.createElement("div",{key:i,style:{height:10}});
+    if(ln.trim()==="---")return React.createElement("hr",{key:i,style:{border:"none",borderTop:"1px solid #ddd",margin:"8px 0"}});
+    if(ln.trim().startsWith("* ")){const c=ln.trim().slice(2);return React.createElement("div",{key:i,style:{display:"flex",gap:8,paddingLeft:8,lineHeight:1.7}},React.createElement("span",{style:{color:"#a08850",flexShrink:0}},"•"),React.createElement("span",null,parseLine(c)))}
+    return React.createElement("div",{key:i,style:{lineHeight:1.7}},parseLine(ln));
+  }));
+}
+
+function WG({size=48,color="#c9a24e"}){return React.createElement("svg",{width:size,height:size,viewBox:"0 0 48 48",fill:"none"},React.createElement("path",{d:"M16 6h16v2c0 8-4 14-8 16v8h6v2H18v-2h6v-8c-4-2-8-8-8-16V6z",fill:color,opacity:.85}),React.createElement("ellipse",{cx:24,cy:8,rx:7,ry:2.5,fill:color,opacity:.5}))}
+
+function App(){
+  const[screen,setScreen]=useState("title");
+  const[rounds,setRounds]=useState([]);
+  const[idx,setIdx]=useState(0);
+  const[score,setScore]=useState(0);
+  const[sel,setSel]=useState(null);
+  const[showNote,setShowNote]=useState(false);
+  const[hist,setHist]=useState([]);
+  const noteRef=useRef(null);
+  const round=rounds[idx];
+  const correct=sel===round?.answer;
+
+  useEffect(()=>{if(showNote&&noteRef.current)noteRef.current.scrollIntoView({behavior:"smooth",block:"center"})},[showNote]);
+
+  const startGame=()=>{setRounds(selectRounds());setIdx(0);setScore(0);setSel(null);setShowNote(false);setHist([]);setScreen("playing")};
+  const pick=(c)=>{setSel(c);if(c===round.answer)setScore(s=>s+1);setHist(h=>[...h,{idx,choice:c,correct:c===round.answer}]);setScreen("reveal");setTimeout(()=>setShowNote(true),700)};
+  const next=()=>{if(idx<rounds.length-1){setIdx(i=>i+1);setSel(null);setShowNote(false);setScreen("playing");window.scrollTo({top:0,behavior:"smooth"})}else{setScreen("results");window.scrollTo({top:0,behavior:"smooth"})}};
+  const getRank=()=>RANKS.find(r=>score>=r.min&&score<=r.max);
+
+  const shareX=()=>{const rk=getRank();const t=`🍷 AIテイスティングで「${rk.title}」を獲得！\n${score}/${GAME_SIZE}問正解\n\nあなたはAIの味を見分けられる？\n#AIテイスティング`;window.open(`https://x.com/intent/tweet?text=${encodeURIComponent(t)}&url=${encodeURIComponent(location.href)}`,"_blank")};
+  const copyShare=()=>{const rk=getRank();const t=`🍷 AIテイスティングで「${rk.title}」を獲得！ ${score}/${GAME_SIZE}問正解\nあなたはAIの味を見分けられる？\n${location.href}`;navigator.clipboard.writeText(t).then(()=>alert("コピーしました！")).catch(()=>prompt("コピーしてシェア：",t))};
+
+  const bg="#0c0612",cBg="#faf6ee",gd="#c9a24e",gdd="#a08838",lt="#e8dfd0",mt="#8a7e6e",dk="#2c1a10",wn="#7a1f4a";
+  const cs={minHeight:"100vh",background:`linear-gradient(180deg,${bg} 0%,#1a0a14 100%)`,color:lt,fontFamily:'-apple-system,"Hiragino Kaku Gothic ProN","Noto Sans JP","Segoe UI",sans-serif',display:"flex",flexDirection:"column",alignItems:"center",padding:"24px 16px"};
+  const card={background:cBg,color:dk,borderRadius:12,padding:"20px",width:"100%",maxWidth:520,fontSize:14,lineHeight:1.7,boxShadow:"0 4px 24px rgba(0,0,0,0.3)"};
+  const btn={border:"none",borderRadius:8,padding:"14px 24px",fontSize:16,fontWeight:600,cursor:"pointer",width:"100%",fontFamily:"inherit"};
+  const serif='"Hiragino Mincho ProN","Noto Serif JP","Times New Roman",serif';
+
+  if(screen==="title"){return(
+    <div style={cs}>
+      <div style={{height:60}}/>
+      <div style={{display:"flex",gap:8,alignItems:"center"}}><WG size={40}/><WG size={56}/><WG size={40}/></div>
+      <div style={{height:24}}/>
+      <h1 style={{fontSize:42,fontWeight:800,color:gd,letterSpacing:6,textAlign:"center",fontFamily:serif}}>AI<br/>テイスティング</h1>
+      <div style={{height:16}}/>
+      <p style={{color:mt,fontSize:14,textAlign:"center",fontFamily:serif,fontStyle:"italic",lineHeight:1.8}}>〜 あなたの舌はAIの味を見分けられるか 〜</p>
+      <div style={{height:12}}/>
+      <p style={{color:mt,fontSize:13,textAlign:"center",maxWidth:380,lineHeight:1.8}}>全{Q.length}問からランダムで{GAME_SIZE}問を出題。<br/>AIが書いた文章を読んで、<br/>どのAIか当ててください。</p>
+      <div style={{height:40}}/>
+      <button onClick={startGame} style={{...btn,maxWidth:280,background:`linear-gradient(135deg,${gd},${gdd})`,color:bg,fontSize:18,letterSpacing:2,boxShadow:`0 4px 20px ${gd}44`}}>テイスティングを始める</button>
+      <div style={{height:40}}/>
+      <div style={{display:"flex",gap:24,fontSize:12,color:mt}}>{CHOICES.map(c=><div key={c} style={{display:"flex",alignItems:"center",gap:6}}><div style={{width:10,height:10,borderRadius:"50%",background:CC[c].bg}}/>{c}</div>)}</div>
+    </div>
+  )}
+
+  if(screen==="results"){const rk=getRank();return(
+    <div style={cs}>
+      <div style={{height:32}}/>
+      <p style={{fontSize:13,color:mt,letterSpacing:3}}>鑑定結果</p>
+      <div style={{height:24}}/>
+      <div style={{fontSize:72}}>{rk.emoji}</div>
+      <div style={{height:16}}/>
+      <h2 style={{fontSize:32,fontWeight:800,color:gd,fontFamily:serif,letterSpacing:4}}>{rk.title}</h2>
+      <div style={{height:8}}/>
+      <p style={{fontSize:20,color:lt}}>{score} / {GAME_SIZE} 正解</p>
+      <div style={{height:20}}/>
+      <div style={{...card,textAlign:"center",fontFamily:serif,fontStyle:"italic",fontSize:15,lineHeight:2,borderLeft:`3px solid ${gd}`}}>{rk.desc.split("\n").map((l,i)=><div key={i}>{l}</div>)}</div>
+      <div style={{height:24}}/>
+      <div style={{width:"100%",maxWidth:520,display:"flex",gap:10}}>
+        <button onClick={shareX} style={{...btn,background:"#000",color:"#fff",fontSize:14,display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>𝕏 でシェア</button>
+        <button onClick={copyShare} style={{...btn,background:"transparent",border:`1.5px solid ${lt}40`,color:lt,fontSize:14}}>📋 コピー</button>
+      </div>
+      <div style={{height:24}}/>
+      <div style={{width:"100%",maxWidth:520}}>
+        <p style={{fontSize:12,color:mt,marginBottom:12,letterSpacing:2}}>テイスティング記録</p>
+        {hist.map((h,i)=><div key={i} style={{display:"flex",alignItems:"center",gap:10,padding:"8px 0",borderBottom:`1px solid ${lt}15`,fontSize:13}}>
+          <span style={{fontSize:16,width:20}}>{h.correct?"✓":"✗"}</span>
+          <span style={{flex:1,color:mt}}>{rounds[i].prompt}</span>
+          <span style={{color:h.correct?"#6ecf8e":"#e05555",fontWeight:600,fontSize:12}}>{h.correct?rounds[i].answer:`${h.choice} → ${rounds[i].answer}`}</span>
+        </div>)}
+      </div>
+      <div style={{height:32}}/>
+      <button onClick={startGame} style={{...btn,maxWidth:320,background:`linear-gradient(135deg,${gd},${gdd})`,color:bg,letterSpacing:2}}>別の問題でもう一度</button>
+      <div style={{height:8}}/>
+      <p style={{fontSize:12,color:mt,textAlign:"center"}}>問題はランダムで変わります</p>
+      <div style={{height:40}}/>
+    </div>
+  )}
+
+  const rv=screen==="reveal";
+  return(
+    <div style={cs}>
+      <div style={{width:"100%",maxWidth:520,display:"flex",alignItems:"center",gap:12,marginBottom:8}}>
+        <p style={{fontSize:12,color:mt,whiteSpace:"nowrap"}}>第{idx+1}杯 / 全{rounds.length}杯</p>
+        <div style={{flex:1,height:3,background:`${lt}20`,borderRadius:2}}><div style={{width:`${((idx+(rv?1:0))/rounds.length)*100}%`,height:"100%",background:gd,borderRadius:2,transition:"width .5s ease"}}/></div>
+        <p style={{fontSize:12,color:gd,fontWeight:600}}>{score}点</p>
+      </div>
+      <div style={{height:8}}/>
+      <div style={{width:"100%",maxWidth:520,padding:"12px 16px",borderRadius:8,background:`${wn}30`,border:`1px solid ${wn}60`,marginBottom:16}}>
+        <p style={{fontSize:11,color:mt,marginBottom:4,letterSpacing:1}}>お題</p>
+        <p style={{fontSize:15,fontWeight:600}}>「{round.prompt}」</p>
+      </div>
+      <div style={{...card,position:"relative"}}>
+        <div style={{position:"absolute",top:12,right:16,fontSize:11,color:"#bbb",background:"#f0ece4",padding:"2px 10px",borderRadius:20}}>AI の回答</div>
+        <div style={{height:8}}/>
+        <RT text={round.text} style={{marginTop:8}}/>
+      </div>
+      <div style={{height:20}}/>
+      {!rv&&<div style={{width:"100%",maxWidth:520}}>
+        <p style={{fontSize:12,color:mt,textAlign:"center",marginBottom:14,letterSpacing:2}}>このAIは誰でしょう？</p>
+        <div style={{display:"flex",gap:10}}>{CHOICES.map(c=><button key={c} onClick={()=>pick(c)} style={{...btn,background:"transparent",border:`1.5px solid ${CC[c].bg}88`,color:CC[c].bg,fontSize:14,padding:"14px 8px"}} onMouseEnter={e=>{e.target.style.background=CC[c].bg;e.target.style.color="#fff"}} onMouseLeave={e=>{e.target.style.background="transparent";e.target.style.color=CC[c].bg}}>{c}</button>)}</div>
+      </div>}
+      {rv&&<div style={{width:"100%",maxWidth:520}}>
+        <div style={{textAlign:"center",padding:"12px 0",animation:"fadeIn .4s ease"}}>
+          <span style={{display:"inline-block",fontSize:14,fontWeight:700,padding:"6px 20px",borderRadius:20,background:correct?"#1a4a2a":"#4a1a1a",color:correct?"#6ecf8e":"#e07070",border:`1px solid ${correct?"#6ecf8e44":"#e0707044"}`}}>{correct?"✓ お見事！":`✗ 残念… 正解は ${round.answer}`}</span>
+        </div>
+        <div style={{textAlign:"center",marginTop:8,animation:"fadeIn .5s ease"}}>
+          <span style={{display:"inline-block",background:CC[round.answer].bg,color:"#fff",padding:"6px 24px",borderRadius:20,fontSize:15,fontWeight:700,letterSpacing:1}}>{round.answer}</span>
+        </div>
+        {showNote&&<div ref={noteRef} style={{marginTop:20,background:"linear-gradient(135deg,#fdfaf3,#f6f0e0)",borderLeft:`3px solid ${gd}`,borderRadius:"0 10px 10px 0",padding:"20px",color:dk,animation:"slideUp .6s ease",boxShadow:"0 2px 16px rgba(0,0,0,.15)"}}>
+          <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:14}}><span style={{fontSize:20}}>🍷</span><span style={{fontSize:12,color:gdd,fontWeight:700,letterSpacing:2}}>ソムリエのテイスティングノート</span></div>
+          <div style={{fontFamily:serif,fontSize:14,lineHeight:2,fontStyle:"italic",color:"#3a2a1a"}}>{(correct?round.ok:round.ng).split("\n").map((l,i)=>l===""?<div key={i} style={{height:8}}/>:<div key={i}>{l}</div>)}</div>
+        </div>}
+        <div style={{height:24}}/>
+        <button onClick={next} style={{...btn,background:`linear-gradient(135deg,${gd},${gdd})`,color:bg,fontSize:16,letterSpacing:2,boxShadow:`0 4px 20px ${gd}33`}}>{idx<rounds.length-1?"次の一杯へ":"鑑定結果を見る"}</button>
+      </div>}
     </div>
   );
 }
-
-function WineGlass({ size = 48, color = "#c9a24e" }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 48 48" fill="none">
-      <path d="M16 6h16v2c0 8-4 14-8 16v8h6v2H18v-2h6v-8c-4-2-8-8-8-16V6z" fill={color} opacity={0.85} />
-      <ellipse cx="24" cy="8" rx="7" ry="2.5" fill={color} opacity={0.5} />
-    </svg>
-  );
-}
-
-function AITasting() {
-  const [screen, setScreen] = useState("title");
-  const [roundIdx, setRoundIdx] = useState(0);
-  const [score, setScore] = useState(0);
-  const [selected, setSelected] = useState(null);
-  const [showNote, setShowNote] = useState(false);
-  const [history, setHistory] = useState([]);
-  const noteRef = useRef(null);
-
-  const round = ROUNDS[roundIdx];
-  const isCorrect = selected === round?.answer;
-
-  useEffect(() => {
-    if (showNote && noteRef.current) {
-      noteRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
-    }
-  }, [showNote]);
-
-  const handleSelect = (choice) => {
-    setSelected(choice);
-    if (choice === round.answer) setScore((s) => s + 1);
-    setHistory((h) => [...h, { round: roundIdx, choice, correct: choice === round.answer }]);
-    setScreen("reveal");
-    setTimeout(() => setShowNote(true), 700);
-  };
-
-  const nextRound = () => {
-    if (roundIdx < ROUNDS.length - 1) {
-      setRoundIdx((r) => r + 1);
-      setSelected(null);
-      setShowNote(false);
-      setScreen("playing");
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    } else {
-      setScreen("results");
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    }
-  };
-
-  const restart = () => {
-    setScreen("title");
-    setRoundIdx(0);
-    setScore(0);
-    setSelected(null);
-    setShowNote(false);
-    setHistory([]);
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
-
-  const getRank = () => RANKS.find((r) => score >= r.min && score <= r.max);
-
-  const shareToX = () => {
-    const rank = getRank();
-    const text = `🍷 AIテイスティングで「${rank.title}」を獲得！\n${score}/${ROUNDS.length}問正解\n\nあなたはAIの味を見分けられる？\n#AIテイスティング`;
-    const url = window.location.href;
-    window.open(`https://x.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`, "_blank");
-  };
-
-  const copyShareText = () => {
-    const rank = getRank();
-    const text = `🍷 AIテイスティングで「${rank.title}」を獲得！ ${score}/${ROUNDS.length}問正解\nあなたはAIの味を見分けられる？\n${window.location.href}`;
-    navigator.clipboard.writeText(text).then(() => {
-      alert("シェア用テキストをコピーしました！");
-    }).catch(() => {
-      prompt("以下をコピーしてシェアしてください：", text);
-    });
-  };
-
-  const bg = "#0c0612";
-  const cardBg = "#faf6ee";
-  const gold = "#c9a24e";
-  const goldDark = "#a08838";
-  const lightText = "#e8dfd0";
-  const mutedText = "#8a7e6e";
-  const darkText = "#2c1a10";
-  const wine = "#7a1f4a";
-
-  const containerStyle = {
-    minHeight: "100vh",
-    background: `linear-gradient(180deg, ${bg} 0%, #1a0a14 100%)`,
-    color: lightText,
-    fontFamily: '-apple-system, "Hiragino Kaku Gothic ProN", "Noto Sans JP", "Segoe UI", sans-serif',
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    padding: "24px 16px",
-  };
-
-  const cardStyle = {
-    background: cardBg,
-    color: darkText,
-    borderRadius: 12,
-    padding: "20px 20px",
-    width: "100%",
-    maxWidth: 520,
-    fontSize: 14,
-    lineHeight: 1.7,
-    boxShadow: "0 4px 24px rgba(0,0,0,0.3)",
-  };
-
-  const btnBase = {
-    border: "none",
-    borderRadius: 8,
-    padding: "14px 24px",
-    fontSize: 16,
-    fontWeight: 600,
-    cursor: "pointer",
-    width: "100%",
-    fontFamily: "inherit",
-  };
-
-  // ===== TITLE =====
-  if (screen === "title") {
-    return (
-      <div style={containerStyle}>
-        <div style={{ height: 60 }} />
-        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-          <WineGlass size={40} /><WineGlass size={56} /><WineGlass size={40} />
-        </div>
-        <div style={{ height: 24 }} />
-        <h1 style={{
-          fontSize: 42, fontWeight: 800, color: gold, letterSpacing: 6, textAlign: "center",
-          fontFamily: '"Hiragino Mincho ProN", "Noto Serif JP", "Times New Roman", serif',
-        }}>
-          AI<br />テイスティング
-        </h1>
-        <div style={{ height: 16 }} />
-        <p style={{
-          color: mutedText, fontSize: 14, textAlign: "center",
-          fontFamily: '"Hiragino Mincho ProN", "Noto Serif JP", serif',
-          fontStyle: "italic", lineHeight: 1.8,
-        }}>
-          〜 あなたの舌はAIの味を見分けられるか 〜
-        </p>
-        <div style={{ height: 12 }} />
-        <p style={{ color: mutedText, fontSize: 13, textAlign: "center", maxWidth: 380, lineHeight: 1.8 }}>
-          AIが生成した文章を読み、<br />どのAIが書いたかを当ててください。<br />全6問。ソムリエがあなたの鑑定眼を評価します。
-        </p>
-        <div style={{ height: 40 }} />
-        <button onClick={() => setScreen("playing")} style={{
-          ...btnBase, maxWidth: 280,
-          background: `linear-gradient(135deg, ${gold}, ${goldDark})`,
-          color: bg, fontSize: 18, letterSpacing: 2,
-          boxShadow: `0 4px 20px ${gold}44`,
-        }}>
-          テイスティングを始める
-        </button>
-        <div style={{ height: 40 }} />
-        <div style={{ display: "flex", gap: 24, fontSize: 12, color: mutedText }}>
-          {CHOICES.map((c) => (
-            <div key={c} style={{ display: "flex", alignItems: "center", gap: 6 }}>
-              <div style={{ width: 10, height: 10, borderRadius: "50%", background: CHOICE_COLORS[c].bg }} />
-              {c}
-            </div>
-          ))}
-        </div>
-      </div>
-    );
-  }
-
-  // ===== RESULTS =====
-  if (screen === "results") {
-    const rank = getRank();
-    return (
-      <div style={containerStyle}>
-        <div style={{ height: 32 }} />
-        <p style={{ fontSize: 13, color: mutedText, letterSpacing: 3 }}>鑑定結果</p>
-        <div style={{ height: 24 }} />
-        <div style={{ fontSize: 72 }}>{rank.emoji}</div>
-        <div style={{ height: 16 }} />
-        <h2 style={{
-          fontSize: 32, fontWeight: 800, color: gold,
-          fontFamily: '"Hiragino Mincho ProN", "Noto Serif JP", serif', letterSpacing: 4,
-        }}>
-          {rank.title}
-        </h2>
-        <div style={{ height: 8 }} />
-        <p style={{ fontSize: 20, color: lightText }}>{score} / {ROUNDS.length} 正解</p>
-        <div style={{ height: 20 }} />
-        <div style={{
-          ...cardStyle, textAlign: "center",
-          fontFamily: '"Hiragino Mincho ProN", "Noto Serif JP", serif',
-          fontStyle: "italic", fontSize: 15, lineHeight: 2,
-          borderLeft: `3px solid ${gold}`,
-        }}>
-          {rank.desc.split("\n").map((line, i) => <div key={i}>{line}</div>)}
-        </div>
-        <div style={{ height: 24 }} />
-
-        {/* Share buttons */}
-        <div style={{ width: "100%", maxWidth: 520, display: "flex", gap: 10 }}>
-          <button onClick={shareToX} style={{
-            ...btnBase, background: "#000", color: "#fff", fontSize: 14,
-            display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
-          }}>
-            𝕏 でシェア
-          </button>
-          <button onClick={copyShareText} style={{
-            ...btnBase, background: "transparent", border: `1.5px solid ${lightText}40`,
-            color: lightText, fontSize: 14,
-          }}>
-            📋 コピー
-          </button>
-        </div>
-        <div style={{ height: 24 }} />
-
-        {/* History */}
-        <div style={{ width: "100%", maxWidth: 520 }}>
-          <p style={{ fontSize: 12, color: mutedText, marginBottom: 12, letterSpacing: 2 }}>テイスティング記録</p>
-          {history.map((h, i) => (
-            <div key={i} style={{
-              display: "flex", alignItems: "center", gap: 10,
-              padding: "8px 0", borderBottom: `1px solid ${lightText}15`, fontSize: 13,
-            }}>
-              <span style={{ fontSize: 16 }}>{h.correct ? "✓" : "✗"}</span>
-              <span style={{ flex: 1, color: mutedText }}>{ROUNDS[i].prompt}</span>
-              <span style={{ color: h.correct ? "#6ecf8e" : "#e05555", fontWeight: 600, fontSize: 12 }}>
-                {h.correct ? ROUNDS[i].answer : `${h.choice} → ${ROUNDS[i].answer}`}
-              </span>
-            </div>
-          ))}
-        </div>
-        <div style={{ height: 32 }} />
-        <button onClick={restart} style={{
-          ...btnBase, maxWidth: 280, background: "transparent",
-          border: `1.5px solid ${gold}`, color: gold,
-        }}>
-          もう一度テイスティング
-        </button>
-        <div style={{ height: 40 }} />
-      </div>
-    );
-  }
-
-  // ===== ROUND =====
-  const isRevealed = screen === "reveal";
-  return (
-    <div style={containerStyle}>
-      {/* Progress */}
-      <div style={{ width: "100%", maxWidth: 520, display: "flex", alignItems: "center", gap: 12, marginBottom: 8 }}>
-        <p style={{ fontSize: 12, color: mutedText, whiteSpace: "nowrap" }}>第{roundIdx + 1}杯 / 全{ROUNDS.length}杯</p>
-        <div style={{ flex: 1, height: 3, background: `${lightText}20`, borderRadius: 2 }}>
-          <div style={{
-            width: `${((roundIdx + (isRevealed ? 1 : 0)) / ROUNDS.length) * 100}%`,
-            height: "100%", background: gold, borderRadius: 2, transition: "width 0.5s ease",
-          }} />
-        </div>
-        <p style={{ fontSize: 12, color: gold, fontWeight: 600 }}>{score}点</p>
-      </div>
-      <div style={{ height: 8 }} />
-
-      {/* Prompt */}
-      <div style={{
-        width: "100%", maxWidth: 520, padding: "12px 16px", borderRadius: 8,
-        background: `${wine}30`, border: `1px solid ${wine}60`, marginBottom: 16,
-      }}>
-        <p style={{ fontSize: 11, color: mutedText, marginBottom: 4, letterSpacing: 1 }}>お題</p>
-        <p style={{ fontSize: 15, fontWeight: 600 }}>「{round.prompt}」</p>
-      </div>
-
-      {/* AI Response */}
-      <div style={{ ...cardStyle, position: "relative" }}>
-        <div style={{
-          position: "absolute", top: 12, right: 16, fontSize: 11, color: "#bbb",
-          background: "#f0ece4", padding: "2px 10px", borderRadius: 20,
-        }}>AI の回答</div>
-        <div style={{ height: 8 }} />
-        <RenderText text={round.text} style={{ marginTop: 8 }} />
-      </div>
-      <div style={{ height: 20 }} />
-
-      {/* Choices */}
-      {!isRevealed && (
-        <div style={{ width: "100%", maxWidth: 520 }}>
-          <p style={{ fontSize: 12, color: mutedText, textAlign: "center", marginBottom: 14, letterSpacing: 2 }}>
-            このAIは誰でしょう？
-          </p>
-          <div style={{ display: "flex", gap: 10 }}>
-            {CHOICES.map((c) => (
-              <button key={c} onClick={() => handleSelect(c)}
-                style={{
-                  ...btnBase, background: "transparent",
-                  border: `1.5px solid ${CHOICE_COLORS[c].bg}88`,
-                  color: CHOICE_COLORS[c].bg, fontSize: 14, padding: "14px 8px",
-                }}
-                onMouseEnter={(e) => { e.target.style.background = CHOICE_COLORS[c].bg; e.target.style.color = "#fff"; }}
-                onMouseLeave={(e) => { e.target.style.background = "transparent"; e.target.style.color = CHOICE_COLORS[c].bg; }}
-              >{c}</button>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Reveal */}
-      {isRevealed && (
-        <div style={{ width: "100%", maxWidth: 520 }}>
-          <div style={{ textAlign: "center", padding: "12px 0", animation: "fadeIn 0.4s ease" }}>
-            <span style={{
-              display: "inline-block", fontSize: 14, fontWeight: 700, padding: "6px 20px",
-              borderRadius: 20,
-              background: isCorrect ? "#1a4a2a" : "#4a1a1a",
-              color: isCorrect ? "#6ecf8e" : "#e07070",
-              border: `1px solid ${isCorrect ? "#6ecf8e44" : "#e0707044"}`,
-            }}>
-              {isCorrect ? "✓ お見事！" : `✗ 残念… 正解は ${round.answer}`}
-            </span>
-          </div>
-          <div style={{ textAlign: "center", marginTop: 8, animation: "fadeIn 0.5s ease" }}>
-            <span style={{
-              display: "inline-block", background: CHOICE_COLORS[round.answer].bg,
-              color: "#fff", padding: "6px 24px", borderRadius: 20,
-              fontSize: 15, fontWeight: 700, letterSpacing: 1,
-            }}>{round.answer}</span>
-          </div>
-
-          {showNote && (
-            <div ref={noteRef} style={{
-              marginTop: 20, background: "linear-gradient(135deg, #fdfaf3, #f6f0e0)",
-              borderLeft: `3px solid ${gold}`, borderRadius: "0 10px 10px 0",
-              padding: "20px 20px", color: darkText, animation: "slideUp 0.6s ease",
-              boxShadow: "0 2px 16px rgba(0,0,0,0.15)",
-            }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
-                <span style={{ fontSize: 20 }}>🍷</span>
-                <span style={{ fontSize: 12, color: goldDark, fontWeight: 700, letterSpacing: 2 }}>
-                  ソムリエのテイスティングノート
-                </span>
-              </div>
-              <div style={{
-                fontFamily: '"Hiragino Mincho ProN", "Noto Serif JP", "Times New Roman", serif',
-                fontSize: 14, lineHeight: 2, fontStyle: "italic", color: "#3a2a1a",
-              }}>
-                {(isCorrect ? round.correctNote : round.wrongNote).split("\n").map((line, i) =>
-                  line === "" ? <div key={i} style={{ height: 8 }} /> : <div key={i}>{line}</div>
-                )}
-              </div>
-            </div>
-          )}
-
-          <div style={{ height: 24 }} />
-          <button onClick={nextRound} style={{
-            ...btnBase,
-            background: `linear-gradient(135deg, ${gold}, ${goldDark})`,
-            color: bg, fontSize: 16, letterSpacing: 2, boxShadow: `0 4px 20px ${gold}33`,
-          }}>
-            {roundIdx < ROUNDS.length - 1 ? "次の一杯へ" : "鑑定結果を見る"}
-          </button>
-        </div>
-      )}
-    </div>
-  );
-}
-
-ReactDOM.createRoot(document.getElementById("root")).render(<AITasting />);
+ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
 </script>
 </body>
 </html>
