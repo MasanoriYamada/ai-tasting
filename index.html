@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AIテイスティング — あなたの舌はAIの味を見分けられるか</title>
+<meta name="description" content="AIが生成した文章を読んで、どのAIが書いたかを当てるクイズゲーム。ソムリエがあなたの鑑定眼を評価します。">
+<meta property="og:title" content="AIテイスティング 🍷">
+<meta property="og:description" content="あなたの舌はAIの味を見分けられるか？ ChatGPT、Claude、Gemini — その文体の癖、見抜けますか？">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="AIテイスティング 🍷">
+<meta name="twitter:description" content="AIが書いた文章を読んで、どのAIか当てるクイズゲーム。あなたのソムリエランクは？">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #0c0612; overflow-x: hidden; }
+  #root { min-height: 100vh; }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
+  }
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes gentlePulse {
+    0%, 100% { opacity: 0.85; }
+    50% { opacity: 1; }
+  }
+  button { transition: all 0.2s ease !important; }
+  button:active { transform: scale(0.97) !important; }
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.26.2/babel.min.js"></script>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useRef, useEffect } = React;
+
+const CHOICES = ["ChatGPT", "Claude", "Gemini"];
+
+const CHOICE_COLORS = {
+  ChatGPT: { bg: "#10a37f" },
+  Claude: { bg: "#d97757" },
+  Gemini: { bg: "#4285f4" },
+};
+
+const ROUNDS = [
+  {
+    prompt: "りんごの美味しい食べ方を教えて",
+    answer: "ChatGPT",
+    text: "もちろんです！りんごの美味しい食べ方をいくつかご紹介しますね！🍎\n\nりんごは本当に万能なフルーツで、そのまま食べても調理しても最高です！\n\n**1. 皮ごと丸かじり**\n最もシンプルで栄養価も高い食べ方です！\n\n**2. 薄切りにして塩水へ**\n変色を防ぎつつ、シャキシャキ感を楽しめます！\n\n**3. アップルパイにする**\nシナモンとバターで炒めて、パイ生地に包めば絶品です！✨\n\n他にも知りたいことがあれば、お気軽にどうぞ！😊",
+    correctNote: "この冒頭の「もちろんです！」の華やかなアタック…絵文字🍎の芳醇なブーケが鼻腔をくすぐる…太字ナンバリングの力強いタンニン…\n\nそして「お気軽にどうぞ！😊」の甘い余韻…！\n\nChatGPTです。求めていない情報まで全力提供するホスピタリティ、まさに新世界のフルボディ。",
+    wrongNote: "お客様…この「もちろんです！」の圧倒的肯定感を見逃すとは…！絵文字の華やかなアロマ、太字の力強いストラクチャー、末尾の無条件の歓迎…\n\nこれはChatGPTの典型的な一杯。もう一口、よくお味わいください。",
+  },
+  {
+    prompt: "猫と犬、どっちが賢い？",
+    answer: "Claude",
+    text: "これは面白い問いですね。ただ、「賢さ」の定義によって答えがかなり変わってくるので、少し整理してみます。\n\n犬は社会的知性に優れています。人間の指差しや表情を読み取る能力は、他の動物と比べても突出しています。一方で猫は、問題解決能力や空間認知において独自の強みを持っています。\n\n結局のところ、「どちらが賢いか」という問い自体が、人間中心的な尺度を動物に当てはめている面があるかもしれません。",
+    correctNote: "ふむ…「面白い問いですね」から始まる穏やかなアタック…「ただ」の慎重な酸味…両論併記の完璧なバランス…\n\n最後に「〜かもしれません」で問いを返すこの奥ゆかしさ…！\n\nClaudeです。控えめだが芯がある、ブルゴーニュのピノ・ノワールのような上品さ。",
+    wrongNote: "おやおや…この繊細な留保表現を見逃されるとは…「ただ」で始まる前置きの上品な酸味、両論併記の絶妙なバランス、そして結論を断定しない奥ゆかしさ…\n\nこれはClaudeです。控えめだが芯がある一杯を、次こそお見逃しなく。",
+  },
+  {
+    prompt: "量子コンピュータって何？",
+    answer: "Gemini",
+    text: "量子コンピュータとは、量子力学の原理を利用して計算を行う次世代のコンピュータです。\n\n従来のコンピュータが「ビット」（0か1）を使うのに対し、量子コンピュータは「量子ビット」を使います。\n\n**主な特徴：**\n* **重ね合わせ：** 0と1を同時に表現できる\n* **量子もつれ：** 離れた量子ビット同士が影響し合う\n* **量子干渉：** 正しい答えの確率を高める\n\n**活用が期待される分野：**\n* 創薬シミュレーション\n* 金融リスク分析\n* 暗号技術\n\nGoogleやIBMなどが研究を進めており、今後の発展が期待されています。",
+    correctNote: "アスタリスク箇条書きの整然たる行列…！「主な特徴」「活用が期待される分野」のセクション分け…Google検索結果を思わせるこの構造美…\n\nGeminiです。優等生のカベルネ・ソーヴィニヨン。教科書的だが隙がない。聞かれてもいない応用分野まで出してくるサービス精神、さすが。",
+    wrongNote: "この整然とした箇条書きの行軍…！太字見出しで区切られたセクション構造…聞かれてもいない「活用が期待される分野」まで展開するこのサービス精神…\n\nGeminiです。図書館の優等生のような一杯を見逃すとは…",
+  },
+  {
+    prompt: "月曜日が憂鬱です",
+    answer: "ChatGPT",
+    text: "月曜日の憂鬱、とてもよく分かります…！😢\n\n多くの人が「ブルーマンデー」を経験していますので、あなただけではありませんよ！\n\n以下に、月曜を楽にするヒントをご紹介します：\n\n**1. 日曜の夜に楽しみを用意する**\n好きなドラマや映画でリラックス！\n\n**2. 月曜にご褒美を設定する**\n美味しいランチを予約するのもおすすめ！\n\n**3. 朝のルーティンを整える**\n余裕を持って起きると気持ちも楽に！\n\nあなたなら大丈夫です！応援しています！💪✨",
+    correctNote: "感情への共感で始まる…が、0.3秒で解決策リストに移行するこのスピード…！「あなたなら大丈夫です！💪✨」の根拠なき全力励まし…！\n\nまたしてもChatGPT。求められていないアドバイスを全力投球する、このサービス過剰な果実味。二杯目でもブレないこの安定感。",
+    wrongNote: "お客様…この即座のアドバイス展開、根拠のない「大丈夫です！」、そしてこの💪✨…！\n\nChatGPTの二杯目です。悩みに共感しつつ0.3秒でソリューション提示に移行する、この圧倒的ポジティビティを見抜けねば…！",
+  },
+  {
+    prompt: "AIは人間の仕事を奪うのか？",
+    answer: "Claude",
+    text: "率直に言えば、「奪う仕事もあれば、生まれる仕事もある」というのが最も誠実な答えだと思います。\n\n歴史的に見ると、産業革命では織工の仕事が機械に置き換わりましたが、同時に機械の設計・保守という新たな職業が生まれました。AIでも同様のことが起きる可能性は高いでしょう。\n\nただし、今回の変化のスピードは過去の技術革新より速いかもしれず、移行期間の短さが社会的な課題になり得ます。\n\n「奪うか否か」という二項対立より、「どう適応するか」に議論を移した方が建設的ではないかと考えます。",
+    correctNote: "「率直に言えば」の誠実なアタック…！産業革命の具体例を挟む知的なミドルパレット…「ただし」の慎重な留保…そして「建設的ではないか」で着地するこの自制心…\n\nClaude二杯目。この留保と誠実さのテロワール、唯一無二。断言を避ける姿勢はもはや芸術の域。",
+    wrongNote: "この「率直に言えば」から始まる誠実なアプローチ…歴史的根拠の積み上げ…「ただし」の留保…結論を押し付けない着地…\n\nClaude二杯目です。断定を避け、考える余白を残すこの知的な余韻を、次こそお見逃しなく。",
+  },
+  {
+    prompt: "おすすめの映画を教えて",
+    answer: "Gemini",
+    text: "おすすめの映画をジャンル別にご紹介しますね！\n\n**アクション：**\n* 『マッドマックス 怒りのデス・ロード』— 圧巻の映像美\n* 『ジョン・ウィック』— スタイリッシュなガンアクション\n\n**SF：**\n* 『インターステラー』— 壮大な宇宙と親子の絆\n* 『ブレードランナー 2049』— 哲学的な世界観\n\n**ヒューマンドラマ：**\n* 『ショーシャンクの空に』— 不朽の名作\n* 『パラサイト 半地下の家族』— 社会派の傑作\n\nお好みのジャンルがあれば、さらに絞り込めますよ！",
+    correctNote: "ジャンル別に完璧に分類された推薦リスト…！この几帳面さ…！一行コメントの効率性…「さらに絞り込めますよ！」の営業スマイル…\n\nGemini二杯目。網羅的で参考になるが、「あなたにはこれ！」と一本を選べない優柔不断さもまた風味。情報のデパート、Gemini。",
+    wrongNote: "このジャンル別の完璧な分類…！見出し＋箇条書き＋一行コメントの三拍子…「絞り込めますよ！」の追加サービス提案…\n\nGemini二杯目です。一本に絞れず全ジャンル網羅するこの性格、もう覚えましたよね？",
+  },
+];
+
+const RANKS = [
+  { min: 0, max: 1, emoji: "🍼", title: "新人ウェイター", desc: "まだAIの味が区別できないようです。\nまずはお冷やからどうぞ。" },
+  { min: 2, max: 3, emoji: "🍷", title: "見習いソムリエ", desc: "基本的な味の違いは感じ取れています。\nあと少し修行を積めば…" },
+  { min: 4, max: 5, emoji: "🏆", title: "マスターソムリエ", desc: "素晴らしい鑑定眼。\nAIの機微を感じ取る一流の舌をお持ちです。" },
+  { min: 6, max: 6, emoji: "👑", title: "神の舌", desc: "全問正解……。\nあなた、もしかしてAIでは？" },
+];
+
+function parseLine(text) {
+  const parts = text.split(/\*\*(.*?)\*\*/g);
+  return parts.map((part, i) =>
+    i % 2 === 1
+      ? React.createElement("strong", { key: i, style: { fontWeight: 700 } }, part)
+      : React.createElement("span", { key: i }, part)
+  );
+}
+
+function RenderText({ text, style }) {
+  const lines = text.split("\n");
+  return (
+    <div style={style}>
+      {lines.map((line, i) => {
+        if (line.trim() === "") return <div key={i} style={{ height: 10 }} />;
+        if (line.trim().startsWith("* ")) {
+          const content = line.trim().slice(2);
+          return (
+            <div key={i} style={{ display: "flex", gap: 8, paddingLeft: 8, lineHeight: 1.7 }}>
+              <span style={{ color: "#a08850", flexShrink: 0 }}>•</span>
+              <span>{parseLine(content)}</span>
+            </div>
+          );
+        }
+        return <div key={i} style={{ lineHeight: 1.7 }}>{parseLine(line)}</div>;
+      })}
+    </div>
+  );
+}
+
+function WineGlass({ size = 48, color = "#c9a24e" }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 48 48" fill="none">
+      <path d="M16 6h16v2c0 8-4 14-8 16v8h6v2H18v-2h6v-8c-4-2-8-8-8-16V6z" fill={color} opacity={0.85} />
+      <ellipse cx="24" cy="8" rx="7" ry="2.5" fill={color} opacity={0.5} />
+    </svg>
+  );
+}
+
+function AITasting() {
+  const [screen, setScreen] = useState("title");
+  const [roundIdx, setRoundIdx] = useState(0);
+  const [score, setScore] = useState(0);
+  const [selected, setSelected] = useState(null);
+  const [showNote, setShowNote] = useState(false);
+  const [history, setHistory] = useState([]);
+  const noteRef = useRef(null);
+
+  const round = ROUNDS[roundIdx];
+  const isCorrect = selected === round?.answer;
+
+  useEffect(() => {
+    if (showNote && noteRef.current) {
+      noteRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }, [showNote]);
+
+  const handleSelect = (choice) => {
+    setSelected(choice);
+    if (choice === round.answer) setScore((s) => s + 1);
+    setHistory((h) => [...h, { round: roundIdx, choice, correct: choice === round.answer }]);
+    setScreen("reveal");
+    setTimeout(() => setShowNote(true), 700);
+  };
+
+  const nextRound = () => {
+    if (roundIdx < ROUNDS.length - 1) {
+      setRoundIdx((r) => r + 1);
+      setSelected(null);
+      setShowNote(false);
+      setScreen("playing");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } else {
+      setScreen("results");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  };
+
+  const restart = () => {
+    setScreen("title");
+    setRoundIdx(0);
+    setScore(0);
+    setSelected(null);
+    setShowNote(false);
+    setHistory([]);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const getRank = () => RANKS.find((r) => score >= r.min && score <= r.max);
+
+  const shareToX = () => {
+    const rank = getRank();
+    const text = `🍷 AIテイスティングで「${rank.title}」を獲得！\n${score}/${ROUNDS.length}問正解\n\nあなたはAIの味を見分けられる？\n#AIテイスティング`;
+    const url = window.location.href;
+    window.open(`https://x.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`, "_blank");
+  };
+
+  const copyShareText = () => {
+    const rank = getRank();
+    const text = `🍷 AIテイスティングで「${rank.title}」を獲得！ ${score}/${ROUNDS.length}問正解\nあなたはAIの味を見分けられる？\n${window.location.href}`;
+    navigator.clipboard.writeText(text).then(() => {
+      alert("シェア用テキストをコピーしました！");
+    }).catch(() => {
+      prompt("以下をコピーしてシェアしてください：", text);
+    });
+  };
+
+  const bg = "#0c0612";
+  const cardBg = "#faf6ee";
+  const gold = "#c9a24e";
+  const goldDark = "#a08838";
+  const lightText = "#e8dfd0";
+  const mutedText = "#8a7e6e";
+  const darkText = "#2c1a10";
+  const wine = "#7a1f4a";
+
+  const containerStyle = {
+    minHeight: "100vh",
+    background: `linear-gradient(180deg, ${bg} 0%, #1a0a14 100%)`,
+    color: lightText,
+    fontFamily: '-apple-system, "Hiragino Kaku Gothic ProN", "Noto Sans JP", "Segoe UI", sans-serif',
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    padding: "24px 16px",
+  };
+
+  const cardStyle = {
+    background: cardBg,
+    color: darkText,
+    borderRadius: 12,
+    padding: "20px 20px",
+    width: "100%",
+    maxWidth: 520,
+    fontSize: 14,
+    lineHeight: 1.7,
+    boxShadow: "0 4px 24px rgba(0,0,0,0.3)",
+  };
+
+  const btnBase = {
+    border: "none",
+    borderRadius: 8,
+    padding: "14px 24px",
+    fontSize: 16,
+    fontWeight: 600,
+    cursor: "pointer",
+    width: "100%",
+    fontFamily: "inherit",
+  };
+
+  // ===== TITLE =====
+  if (screen === "title") {
+    return (
+      <div style={containerStyle}>
+        <div style={{ height: 60 }} />
+        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+          <WineGlass size={40} /><WineGlass size={56} /><WineGlass size={40} />
+        </div>
+        <div style={{ height: 24 }} />
+        <h1 style={{
+          fontSize: 42, fontWeight: 800, color: gold, letterSpacing: 6, textAlign: "center",
+          fontFamily: '"Hiragino Mincho ProN", "Noto Serif JP", "Times New Roman", serif',
+        }}>
+          AI<br />テイスティング
+        </h1>
+        <div style={{ height: 16 }} />
+        <p style={{
+          color: mutedText, fontSize: 14, textAlign: "center",
+          fontFamily: '"Hiragino Mincho ProN", "Noto Serif JP", serif',
+          fontStyle: "italic", lineHeight: 1.8,
+        }}>
+          〜 あなたの舌はAIの味を見分けられるか 〜
+        </p>
+        <div style={{ height: 12 }} />
+        <p style={{ color: mutedText, fontSize: 13, textAlign: "center", maxWidth: 380, lineHeight: 1.8 }}>
+          AIが生成した文章を読み、<br />どのAIが書いたかを当ててください。<br />全6問。ソムリエがあなたの鑑定眼を評価します。
+        </p>
+        <div style={{ height: 40 }} />
+        <button onClick={() => setScreen("playing")} style={{
+          ...btnBase, maxWidth: 280,
+          background: `linear-gradient(135deg, ${gold}, ${goldDark})`,
+          color: bg, fontSize: 18, letterSpacing: 2,
+          boxShadow: `0 4px 20px ${gold}44`,
+        }}>
+          テイスティングを始める
+        </button>
+        <div style={{ height: 40 }} />
+        <div style={{ display: "flex", gap: 24, fontSize: 12, color: mutedText }}>
+          {CHOICES.map((c) => (
+            <div key={c} style={{ display: "flex", alignItems: "center", gap: 6 }}>
+              <div style={{ width: 10, height: 10, borderRadius: "50%", background: CHOICE_COLORS[c].bg }} />
+              {c}
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  // ===== RESULTS =====
+  if (screen === "results") {
+    const rank = getRank();
+    return (
+      <div style={containerStyle}>
+        <div style={{ height: 32 }} />
+        <p style={{ fontSize: 13, color: mutedText, letterSpacing: 3 }}>鑑定結果</p>
+        <div style={{ height: 24 }} />
+        <div style={{ fontSize: 72 }}>{rank.emoji}</div>
+        <div style={{ height: 16 }} />
+        <h2 style={{
+          fontSize: 32, fontWeight: 800, color: gold,
+          fontFamily: '"Hiragino Mincho ProN", "Noto Serif JP", serif', letterSpacing: 4,
+        }}>
+          {rank.title}
+        </h2>
+        <div style={{ height: 8 }} />
+        <p style={{ fontSize: 20, color: lightText }}>{score} / {ROUNDS.length} 正解</p>
+        <div style={{ height: 20 }} />
+        <div style={{
+          ...cardStyle, textAlign: "center",
+          fontFamily: '"Hiragino Mincho ProN", "Noto Serif JP", serif',
+          fontStyle: "italic", fontSize: 15, lineHeight: 2,
+          borderLeft: `3px solid ${gold}`,
+        }}>
+          {rank.desc.split("\n").map((line, i) => <div key={i}>{line}</div>)}
+        </div>
+        <div style={{ height: 24 }} />
+
+        {/* Share buttons */}
+        <div style={{ width: "100%", maxWidth: 520, display: "flex", gap: 10 }}>
+          <button onClick={shareToX} style={{
+            ...btnBase, background: "#000", color: "#fff", fontSize: 14,
+            display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+          }}>
+            𝕏 でシェア
+          </button>
+          <button onClick={copyShareText} style={{
+            ...btnBase, background: "transparent", border: `1.5px solid ${lightText}40`,
+            color: lightText, fontSize: 14,
+          }}>
+            📋 コピー
+          </button>
+        </div>
+        <div style={{ height: 24 }} />
+
+        {/* History */}
+        <div style={{ width: "100%", maxWidth: 520 }}>
+          <p style={{ fontSize: 12, color: mutedText, marginBottom: 12, letterSpacing: 2 }}>テイスティング記録</p>
+          {history.map((h, i) => (
+            <div key={i} style={{
+              display: "flex", alignItems: "center", gap: 10,
+              padding: "8px 0", borderBottom: `1px solid ${lightText}15`, fontSize: 13,
+            }}>
+              <span style={{ fontSize: 16 }}>{h.correct ? "✓" : "✗"}</span>
+              <span style={{ flex: 1, color: mutedText }}>{ROUNDS[i].prompt}</span>
+              <span style={{ color: h.correct ? "#6ecf8e" : "#e05555", fontWeight: 600, fontSize: 12 }}>
+                {h.correct ? ROUNDS[i].answer : `${h.choice} → ${ROUNDS[i].answer}`}
+              </span>
+            </div>
+          ))}
+        </div>
+        <div style={{ height: 32 }} />
+        <button onClick={restart} style={{
+          ...btnBase, maxWidth: 280, background: "transparent",
+          border: `1.5px solid ${gold}`, color: gold,
+        }}>
+          もう一度テイスティング
+        </button>
+        <div style={{ height: 40 }} />
+      </div>
+    );
+  }
+
+  // ===== ROUND =====
+  const isRevealed = screen === "reveal";
+  return (
+    <div style={containerStyle}>
+      {/* Progress */}
+      <div style={{ width: "100%", maxWidth: 520, display: "flex", alignItems: "center", gap: 12, marginBottom: 8 }}>
+        <p style={{ fontSize: 12, color: mutedText, whiteSpace: "nowrap" }}>第{roundIdx + 1}杯 / 全{ROUNDS.length}杯</p>
+        <div style={{ flex: 1, height: 3, background: `${lightText}20`, borderRadius: 2 }}>
+          <div style={{
+            width: `${((roundIdx + (isRevealed ? 1 : 0)) / ROUNDS.length) * 100}%`,
+            height: "100%", background: gold, borderRadius: 2, transition: "width 0.5s ease",
+          }} />
+        </div>
+        <p style={{ fontSize: 12, color: gold, fontWeight: 600 }}>{score}点</p>
+      </div>
+      <div style={{ height: 8 }} />
+
+      {/* Prompt */}
+      <div style={{
+        width: "100%", maxWidth: 520, padding: "12px 16px", borderRadius: 8,
+        background: `${wine}30`, border: `1px solid ${wine}60`, marginBottom: 16,
+      }}>
+        <p style={{ fontSize: 11, color: mutedText, marginBottom: 4, letterSpacing: 1 }}>お題</p>
+        <p style={{ fontSize: 15, fontWeight: 600 }}>「{round.prompt}」</p>
+      </div>
+
+      {/* AI Response */}
+      <div style={{ ...cardStyle, position: "relative" }}>
+        <div style={{
+          position: "absolute", top: 12, right: 16, fontSize: 11, color: "#bbb",
+          background: "#f0ece4", padding: "2px 10px", borderRadius: 20,
+        }}>AI の回答</div>
+        <div style={{ height: 8 }} />
+        <RenderText text={round.text} style={{ marginTop: 8 }} />
+      </div>
+      <div style={{ height: 20 }} />
+
+      {/* Choices */}
+      {!isRevealed && (
+        <div style={{ width: "100%", maxWidth: 520 }}>
+          <p style={{ fontSize: 12, color: mutedText, textAlign: "center", marginBottom: 14, letterSpacing: 2 }}>
+            このAIは誰でしょう？
+          </p>
+          <div style={{ display: "flex", gap: 10 }}>
+            {CHOICES.map((c) => (
+              <button key={c} onClick={() => handleSelect(c)}
+                style={{
+                  ...btnBase, background: "transparent",
+                  border: `1.5px solid ${CHOICE_COLORS[c].bg}88`,
+                  color: CHOICE_COLORS[c].bg, fontSize: 14, padding: "14px 8px",
+                }}
+                onMouseEnter={(e) => { e.target.style.background = CHOICE_COLORS[c].bg; e.target.style.color = "#fff"; }}
+                onMouseLeave={(e) => { e.target.style.background = "transparent"; e.target.style.color = CHOICE_COLORS[c].bg; }}
+              >{c}</button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Reveal */}
+      {isRevealed && (
+        <div style={{ width: "100%", maxWidth: 520 }}>
+          <div style={{ textAlign: "center", padding: "12px 0", animation: "fadeIn 0.4s ease" }}>
+            <span style={{
+              display: "inline-block", fontSize: 14, fontWeight: 700, padding: "6px 20px",
+              borderRadius: 20,
+              background: isCorrect ? "#1a4a2a" : "#4a1a1a",
+              color: isCorrect ? "#6ecf8e" : "#e07070",
+              border: `1px solid ${isCorrect ? "#6ecf8e44" : "#e0707044"}`,
+            }}>
+              {isCorrect ? "✓ お見事！" : `✗ 残念… 正解は ${round.answer}`}
+            </span>
+          </div>
+          <div style={{ textAlign: "center", marginTop: 8, animation: "fadeIn 0.5s ease" }}>
+            <span style={{
+              display: "inline-block", background: CHOICE_COLORS[round.answer].bg,
+              color: "#fff", padding: "6px 24px", borderRadius: 20,
+              fontSize: 15, fontWeight: 700, letterSpacing: 1,
+            }}>{round.answer}</span>
+          </div>
+
+          {showNote && (
+            <div ref={noteRef} style={{
+              marginTop: 20, background: "linear-gradient(135deg, #fdfaf3, #f6f0e0)",
+              borderLeft: `3px solid ${gold}`, borderRadius: "0 10px 10px 0",
+              padding: "20px 20px", color: darkText, animation: "slideUp 0.6s ease",
+              boxShadow: "0 2px 16px rgba(0,0,0,0.15)",
+            }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
+                <span style={{ fontSize: 20 }}>🍷</span>
+                <span style={{ fontSize: 12, color: goldDark, fontWeight: 700, letterSpacing: 2 }}>
+                  ソムリエのテイスティングノート
+                </span>
+              </div>
+              <div style={{
+                fontFamily: '"Hiragino Mincho ProN", "Noto Serif JP", "Times New Roman", serif',
+                fontSize: 14, lineHeight: 2, fontStyle: "italic", color: "#3a2a1a",
+              }}>
+                {(isCorrect ? round.correctNote : round.wrongNote).split("\n").map((line, i) =>
+                  line === "" ? <div key={i} style={{ height: 8 }} /> : <div key={i}>{line}</div>
+                )}
+              </div>
+            </div>
+          )}
+
+          <div style={{ height: 24 }} />
+          <button onClick={nextRound} style={{
+            ...btnBase,
+            background: `linear-gradient(135deg, ${gold}, ${goldDark})`,
+            color: bg, fontSize: 16, letterSpacing: 2, boxShadow: `0 4px 20px ${gold}33`,
+          }}>
+            {roundIdx < ROUNDS.length - 1 ? "次の一杯へ" : "鑑定結果を見る"}
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<AITasting />);
+</script>
+</body>
+</html>
